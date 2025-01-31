@@ -1,0 +1,67 @@
+## Version 1
+## Purpose of program is to correct user typos in data in large excel files
+## Program takes user input for what column needs corrected and what data needs corrected
+## Program then uses the rapidfuzz library to find the closest match to the user input
+## Program then asks the user if the match is correct
+## If the match is correct, the program will replace the data in the excel file with the corrected data
+## If the match is incorrect, the program will ask the user to input the correct data
+## Program will then replace the data in the excel file with the corrected data
+## Program will then ask the user if they would like to correct more data
+## If the user says yes, the program will repeat the process
+
+# Program works best with data that is not too similar to other data in the column
+
+# WARNING: This program is not perfect and may not work for all data types. Additionally, some strings may be too similar for the program to differentiate 
+# between them and may inadvertantly change data that does not need to be corrected. Program will save the corrected data in a new excel file called "corrected_excel_file.xlsx"
+
+import pandas as pd
+import openpyxl
+import rapidfuzz as rf
+
+#finds what column the user wants to correct
+print("Starting now")
+
+
+
+def get_file():
+    excel_file = input("Hello, please input the filepath of the excel file you would like to correct: ")
+    df = pd.read_excel(excel_file)
+    return df, excel_file
+
+
+
+def get_input(df):
+    print("Here is a sample of your file")
+    print(df.head())
+    corrected_column = input("Please input what column needs corrected: ")
+    corrected_input = input("WARNING: Some data are too similar and may be indavertantly altered. Verify that no other data could be changed... Please input what data needs corrected. Enter what the data should be: ")
+    column_index = df.columns.get_loc(corrected_column)
+    return corrected_column, corrected_input, column_index
+
+
+
+def correct_data(df, corrected_input, column_index, corrected_column):
+    i = 0
+    while i < len(df.index):
+        cell_value = df.iloc[i, column_index]
+        if rf.fuzz.ratio(cell_value, corrected_input) > 70:
+                df.loc[i, corrected_column] = corrected_input
+                df.to_excel("corrected_excel_file.xlsx", index = False)
+        i += 1
+            
+    
+
+#flowpath of the program
+cont = True
+while cont == True:
+    df, excel_file = get_file()
+    corrected_column, corrected_input, column_index = get_input(df)
+    correct_data(df, corrected_input, column_index, corrected_column)
+    more = input("Does user want to correct more data?")
+    if more == "no":
+     cont = False
+     print("Goodbye")
+    else:
+     cont = True
+
+
